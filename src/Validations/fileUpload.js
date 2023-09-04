@@ -4,7 +4,14 @@ import './fileUpload.css';
 
 export default function FileUpload() {
     const [transactions, setTransactions] = useState([]);
+    const [showHideFailedTrans, setShowHideFailedTrans] = useState(false)
     let fileFormat = '';
+
+    // Event handler that is used to read the file uploaded based on two file format CSV and XML
+    // and then convert the response to an array and set it to state variable
+    // Event handler that is used to populate failed transactions based on 2 criteria 
+    // 1. Duplicate refernce transaction id
+    // 2. Sum of start balance and mutation key should be equal to end balance
 
     const handleRecordValidation = (e) => {
         let file = document.getElementById("fileReport").files[0];
@@ -37,7 +44,13 @@ export default function FileUpload() {
             })
             return obj;
         })
-        setTransactions(failedTransactions(array))
+        const transactionRecords = failedTransactions(array)
+        setTransactions(transactionRecords)
+        if (transactionRecords.length > 0) {
+            setShowHideFailedTrans(true)
+        } else {
+            setShowHideFailedTrans(false)
+        }
     }
 
     const csvFileToArray = string => {
@@ -52,8 +65,17 @@ export default function FileUpload() {
             }, {});
             return obj;
         });
-        setTransactions(failedTransactions(array));
+        const transactionRecords = failedTransactions(array)
+        setTransactions(transactionRecords);
+        if (transactionRecords.length > 0) {
+            setShowHideFailedTrans(true)
+        } else {
+            setShowHideFailedTrans(false)
+        }
     };
+
+    /* Function failed Transactions is used to populate failed transaction records based on duplilcate ref id and 
+    end balance calculation */
 
     const failedTransactions = (records) => {
         const referenceIdKey = fileFormat === 'xml' ? 'reference' : 'Reference'
@@ -79,14 +101,15 @@ export default function FileUpload() {
                 }
             }
         }
-        return (failedTransactionsData);
+        return failedTransactionsData;
     }
 
+    /* Function handleFileTypeValidation is used to upload file of CSV and XML extensions */
     const handleFileTypeValidation = (e) => {
         const fileUpload = document.getElementById("fileReport");
         const fileInput = e.target.value ? e.target.value.split('.').pop() : ''
         const allowedExtensions = /[\.csv|\.xml]+$/
-        if (!allowedExtensions.exec(fileInput)) {
+        if ((fileInput != null || fileInput != '') && (!allowedExtensions.exec(fileInput))) {
             alert('Invalid file type: (Enter xml/csv format)');
             fileUpload.value = '';
             fileUpload.value = null;
@@ -97,34 +120,36 @@ export default function FileUpload() {
     const headerKeys = Object.keys(Object.assign({}, ...transactions));
 
     return (
-        <div style={{display: 'flex',justifyContent: 'left' }}>
-            <div style={{position: 'relative', padding: '10px'}}>
+        <div className='wrapper'>
+            <div className='fileupload-section'>
                 <label for="fileReport"><h3>Select a file: (either excel/xml format)</h3></label>&nbsp;&nbsp;
                 <input id='fileReport' name='fileReport' type='file' onChange={handleFileTypeValidation} /><br />
-                <button style={{position:'absolute', top: '110px', left: '54px'}} id='validateReport' onClick={handleRecordValidation}>View Report</button>
+                <button className='btn-validateReport' id='validateReport' onClick={handleRecordValidation}>View Report</button>
             </div>
-            <div style={{position: 'relative', top: '150px', right: '300px'}}>
-                <h3 style={{ alignContent: 'left' }}>Failed Transactions</h3>
-                <table style={{ alignItems: 'center' }}>
-                    <thead>
-                        <tr key={"header"}>
-                            {headerKeys.map((key) => (
-                                <th>{key}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {transactions.map((item, index) => (
-                            <tr key={index}>
-                                {Object.values(item).map((val) => (
-                                    <td>{val}</td>
+            {showHideFailedTrans &&
+                <div className='failed-transaction-report'>
+                    <h3 style={{ alignContent: 'left' }}>Failed Transactions</h3>
+                    <table style={{ alignItems: 'center' }}>
+                        <thead>
+                            <tr key={"header"}>
+                                {headerKeys.map((key) => (
+                                    <th>{key}</th>
                                 ))}
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-                {}
-            </div>
+                        </thead>
+                        <tbody>
+                            {transactions.map((item, index) => (
+                                <tr key={index}>
+                                    {Object.values(item).map((val) => (
+                                        <td>{val}</td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    { }
+                </div>
+            }
         </div>
     )
 }

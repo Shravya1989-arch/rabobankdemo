@@ -1,14 +1,21 @@
-.wrapper{
+.wrapper {
     display:flex;
-    height: 50vh;
-    width: 100%;
-    justify-content: center;
-    align-items: center;
-    padding:5px;
-    margin:5px;
-    /* display: flex;
-    height: 50vh; */
-    /* width: 100vh; */
-    /* justify-content: center;
-    align-items: center; */
+    justify-content: left;
+}
+
+.fileupload-section {
+    position: relative; 
+    padding: 10px;
+}
+
+.failed-transaction-report {
+    position: relative;
+    top: 150px;
+    right: 300px;
+}
+
+.btn-validateReport {
+    position: absolute;
+    top: 110px;
+    left: 54px;
 }

@@ -1,11 +1,11 @@
 import logo from './logo.svg';
 import './App.css';
-import Validations from './Validations/fileUpload'
+import Transactions from './failedtransactions/fileUpload'
 
 function App() {
   return (
     <div className="App">
-        <Validations></Validations>
+        <Transactions></Transactions>
     </div>
   );
 }

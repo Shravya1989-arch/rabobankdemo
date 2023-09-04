@@ -29,7 +29,7 @@ export default function FileUpload() {
                 }
             }
             reader.onerror = function (evt) {
-                document.getElementById("fileContents").innerHTML = "error reading file";
+                document.getElementById("fileReport").innerHTML = "error reading file";
             }
         }
         e.preventDefault()

@@ -19,3 +19,8 @@
     top: 110px;
     left: 54px;
 }
+
+table, th, td {
+    border: 1px solid black;
+    padding: 2px;
+  }

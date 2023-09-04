@@ -15,10 +15,15 @@ export default function FileUpload() {
 
     const handleRecordValidation = (e) => {
         let file = document.getElementById("fileReport").files[0];
-        fileFormat = file.name.split('.')[1];
+
         if (file) {
+            fileFormat = file.name.split('.')[1];
             let reader = new FileReader();
-            reader.readAsText(file, "UTF-8");
+            if(fileFormat === 'xml') {
+                reader.readAsText(file);
+            } else if(fileFormat === 'csv') {
+                reader.readAsText(file,'ISO-8859-1');
+            }
             reader.onload = function (evt) {
                 if (fileFormat === 'xml') {
                     const jsonDataFromXml = new XMLParser().parseFromString(evt.target.result);
@@ -31,6 +36,10 @@ export default function FileUpload() {
             reader.onerror = function (evt) {
                 document.getElementById("fileReport").innerHTML = "error reading file";
             }
+        } else if(!file) {
+            alert('Please upload a file (either in csv or xml format)');
+            document.getElementById("fileReport").value = '';
+            return false;
         }
         e.preventDefault()
     }
@@ -54,9 +63,14 @@ export default function FileUpload() {
     }
 
     const csvFileToArray = string => {
-        const csvHeader = string.slice(0, string.indexOf("\n")).split(",");
-        const csvRows = string.slice(string.indexOf("\n") + 1).split("\n");
+        const updatedString = string.replaceAll('\r','')
+        const csvHeader = updatedString.slice(0, updatedString.indexOf("\n")).split(",");
+        const csvRows = updatedString.slice(updatedString.indexOf("\n") + 1).split("\n");
 
+        if(csvRows.length == 1 && csvRows[0] == '') {
+            alert("No data found")
+            return false
+        }
         const array = csvRows.map(i => {
             const values = i.split(",");
             const obj = csvHeader.reduce((object, header, index) => {
@@ -82,6 +96,8 @@ export default function FileUpload() {
         const mutationKey = fileFormat === 'xml' ? 'mutation' : 'Mutation'
         const startBalanceKey = fileFormat === 'xml' ? 'startBalance' : 'Start Balance'
         const endBalanceKey = fileFormat === 'xml' ? 'endBalance' : 'End Balance'
+        const accountNumberKey = fileFormat === 'xml' ? 'accountNumber' : 'Account Number'
+        const descriptionKey = fileFormat === 'xml' ? 'description' : 'Description'
         const duplicateIndices = [];
         const failedTransactionsData = [];
         for (let i = 0; i < records.length; i++) {
@@ -90,17 +106,26 @@ export default function FileUpload() {
                 if (records[i][referenceIdKey] === records[j][referenceIdKey]) {
                     const index = !duplicateIndices.includes(i) ? i : j;
                     duplicateIndices.push(index);
-                    failedTransactionsData.push(records[index]);
+                    let obj = {}
+                    obj[referenceIdKey] = records[index][referenceIdKey]
+                    obj[accountNumberKey] = records[index][accountNumberKey]
+                    obj[descriptionKey] = records[index][descriptionKey]
+                    obj['Error Description'] = 'Duplicate reference ID found'
+                    failedTransactionsData.push(obj);
                 }
             }
 
             // To check wrong end-balance in records which is not already exist in duplicate records list
             if ((Number(records[i][startBalanceKey]) + Number(records[i][mutationKey])).toFixed(2) !== Number(records[i][endBalanceKey]).toFixed(2)) {
-                if (duplicateIndices.indexOf(i) === -1) {
-                    failedTransactionsData.push(records[i]);
-                }
+                let obj = {}
+                obj[referenceIdKey] = records[i][referenceIdKey]
+                obj[accountNumberKey] = records[i][accountNumberKey]
+                obj[descriptionKey] = records[i][descriptionKey]
+                obj['Error Description'] = 'End balance mismatch found'
+                failedTransactionsData.push(obj)
             }
         }
+
         return failedTransactionsData;
     }
 
@@ -109,6 +134,7 @@ export default function FileUpload() {
         const fileUpload = document.getElementById("fileReport");
         const fileInput = e.target.value ? e.target.value.split('.').pop() : ''
         const allowedExtensions = /[\.csv|\.xml]+$/
+        setShowHideFailedTrans(false)
         if ((fileInput != null || fileInput != '') && (!allowedExtensions.exec(fileInput))) {
             alert('Invalid file type: (Enter xml/csv format)');
             fileUpload.value = '';
@@ -128,7 +154,7 @@ export default function FileUpload() {
             </div>
             {showHideFailedTrans &&
                 <div className='failed-transaction-report'>
-                    <h3 style={{ alignContent: 'left' }}>Failed Transactions</h3>
+                    <h3 style={{ alignContent: 'left' }}>Error transactions</h3>
                     <table style={{ alignItems: 'center' }}>
                         <thead>
                             <tr key={"header"}>

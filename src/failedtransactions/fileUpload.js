@@ -68,7 +68,7 @@ export default function FileUpload() {
         const csvHeader = updatedString.slice(0, updatedString.indexOf("\n")).split(",");
         const csvRows = updatedString.slice(updatedString.indexOf("\n") + 1).split("\n");
 
-        if(csvRows.length == 1 && csvRows[0] == '') {
+        if(csvRows.length === 1 && csvRows[0] === '') {
             alert("No data found")
             return false
         }
@@ -133,13 +133,11 @@ export default function FileUpload() {
     /* Function handleFileTypeValidation is used to upload file of CSV and XML extensions */
     const handleFileTypeValidation = (e) => {
         const fileUpload = document.getElementById("fileReport");
-        const fileInput = e.target.value ? e.target.value.split('.').pop() : ''
-        const allowedExtensions = /[\.csv|\.xml]+$/
+        const fileExtension = e.target.value ? e.target.value.split('.').pop() : ''
         setShowHideFailedTrans(false)
-        if ((fileInput != null || fileInput != '') && (!allowedExtensions.exec(fileInput))) {
-            alert('Invalid file type: (Enter xml/csv format)');
+        if ((fileExtension !== null || fileExtension !== '') && (fileExtension !== 'csv' && fileExtension !== 'xml')) {
+            alert('Please upload CSV or XML');
             fileUpload.value = '';
-            fileUpload.value = null;
             return false;
         }
     }
@@ -208,13 +206,13 @@ export default function FileUpload() {
     return (
         <div className='wrapper'>
             <div className='fileupload-section'>
-                <label for="fileReport"><h3>Select a file: (either excel/xml format)</h3></label>&nbsp;&nbsp;
-                <input id='fileReport' name='fileReport' type='file' onChange={handleFileTypeValidation} /><br />
-                <button className='btn-validateReport' id='validateReport' onClick={handleRecordValidation}>View Report</button>
+                <label htmlFor="fileReport"><h3>Select a file: (either excel/xml format)</h3></label>&nbsp;&nbsp;
+                <input id='fileReport' data-testid='fileReport' name='fileReport' type='file' onChange={handleFileTypeValidation} /><br />
+                <button className='btn-validateReport' id='validateReport' data-testid='validateReport' onClick={handleRecordValidation}>View Report</button>
             </div>
             {showHideFailedTrans &&
                 <div className='failed-transaction-report'>
-                    <h3 style={{ alignContent: 'left' }}>Error transactions</h3>
+                    <h3 data-testid='errorTransaction' style={{ alignContent: 'left' }}>Error transactions</h3>
                     <table style={{ alignItems: 'center' }}>
                         <thead>
                             <tr key={"header"}>
@@ -234,9 +232,6 @@ export default function FileUpload() {
                         </tbody>
                     </table>
                     <br/><br/>
-                    {/* <button type="button" onClick={tableToCSV}>
-                        Download CSV
-                    </button> */}
                     <ExportToCSV handleDownloadCSV={tableToCSV}></ExportToCSV>
                 </div>
             }

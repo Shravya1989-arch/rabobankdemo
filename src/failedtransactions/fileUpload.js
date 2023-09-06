@@ -47,7 +47,7 @@ export default function FileUpload() {
 
     const xmlFileToArray = records => {
         const array = records.map(rec => {
-            var obj = {}
+            let obj = {}
             obj['reference'] = rec.attributes.reference
             rec.children.map(item => {
                 obj[item.name] = item.value
@@ -152,7 +152,7 @@ export default function FileUpload() {
         for (let i = 0; i < rows.length; i++) {
 
             // Get each column data
-            let cols = rows[i].querySelectorAll('td,th');
+            const cols = rows[i].querySelectorAll('td,th');
 
             // Stores each csv row data
             let csvrow = [];
@@ -174,6 +174,7 @@ export default function FileUpload() {
         downloadCSVFile(csv_data);
     }
 
+    // Method to download CSV file
     const downloadCSVFile = (csv_data) => {
  
         // Create CSV file object and feed
